@@ -26,15 +26,7 @@
         .fade-enter-active, .fade-leave-active { transition: opacity var(--slow), transform var(--slow); }
         .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(15px); }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
         #particles-js { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; pointer-events: none; }
         .bg-gradient-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 10% 10%, rgba(138, 43, 226, 0.08) 0%, transparent 35%), radial-gradient(circle at 90% 90%, rgba(75, 0, 130, 0.08) 0%, transparent 35%); z-index: 2; pointer-events: none; }
         .site-wrapper { position: relative; z-index: 10; }
@@ -56,7 +48,7 @@
         .btn-action:hover { transform: translateY(-3px); box-shadow: 0 8px 25px var(--primary-glow); }
 
         .auth-box { background: var(--card); border: 1px solid var(--border); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; }
-        .auth-box input { width: 100%; padding: 14px; margin: 10px 0; background: #15151a; border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; box-sizing: border-box; }
+        .auth-box input { width: 100%; padding: 14px; margin: 10px 0; background: #15151a; border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; box-sizing: border-box; text-align: center; font-size: 1.1rem; }
 
         .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .sub-plan-btn { width: 100%; padding: 16px; background: #15151a; border: 1px solid var(--border); color: white; border-radius: 12px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: var(--fast); }
@@ -86,7 +78,7 @@
                 <i class="fa fa-crown"></i> ADMIN
             </button>
             <button v-if="user" @click="page = 'profile'" class="btn-nav">Кабинет</button>
-            <button v-if="!user" @click="page = 'login'" class="btn-nav">Войти</button>
+            <button v-if="!user" @click="page = 'login'" class="btn-nav">Вход</button>
             <button v-else @click="logout" class="btn-nav" style="border-color: var(--danger);">Выйти</button>
         </div>
     </nav>
@@ -117,7 +109,7 @@
         <section class="container" v-else-if="page === 'profile'" key="profile">
             <div class="card" style="width: 500px;">
                 <h2>Личный кабинет</h2>
-                <p style="color: var(--text-dim)">Логин: <span style="color: white">{{ user.login }}</span></p>
+                <p style="color: var(--text-dim)">Вы зашли под именем: <span style="color: white; font-weight: bold;">{{ user.login }}</span></p>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;">
                     <div style="background: #15151a; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
                         <span style="font-size: 12px; color: var(--text-dim)">Подписка</span><br>
@@ -153,15 +145,12 @@
             </div>
         </section>
 
-        <section class="container" v-else-if="page === 'login' || page === 'register'">
+        <section class="container" v-else-if="page === 'login'">
             <div class="auth-box">
-                <h2>{{ page === 'login' ? 'Авторизация' : 'Регистрация' }}</h2>
-                <input v-model="authData.login" type="text" placeholder="Логин">
-                <input v-model="authData.pass" type="password" placeholder="Пароль">
-                <button class="btn-action" @click="handleAuth">{{ page === 'login' ? 'Войти' : 'Создать' }}</button>
-                <p @click="page = (page === 'login' ? 'register' : 'login')" style="cursor:pointer; color: var(--primary); margin-top: 15px; font-size: 13px;">
-                    {{ page === 'login' ? 'Нет аккаунта? Создать' : 'Уже есть аккаунт? Войти' }}
-                </p>
+                <h2>Введите ваш логин</h2>
+                <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 20px;">Пароль не требуется — просто введите никнейм</p>
+                <input v-model="loginInput" type="text" placeholder="Например: delin" @keyup.enter="handleLogin">
+                <button class="btn-action" @click="handleLogin">ВОЙТИ / СОЗДАТЬ</button>
             </div>
         </section>
     </transition>
@@ -182,18 +171,75 @@
 
 <script>
     particlesJS("particles-js", { "particles": { "number": { "value": 80 }, "color": { "value": "#8a2be2" }, "shape": { "type": "circle" }, "opacity": { "value": 0.8 }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#8a2be2", "opacity": 0.4, "width": 1 }, "move": { "enable": true, "speed": 1.5 } }, "interactivity": { "events": { "onhover": { "enable": true, "mode": "grab" } } } });
+    
     const { createApp } = Vue
     createApp({
-        data() { return { page: 'home', user: JSON.parse(localStorage.getItem('bernal_session')), allUsers: JSON.parse(localStorage.getItem('users_db') || '[]'), authData: { login: '', pass: '' }, showBuyModal: false, error: '' } },
-        methods: {
-            handleAuth() { if (this.page === 'register') { if (this.allUsers.find(u => u.login === this.authData.login)) return alert('Логин занят'); const sub = (this.authData.login === 'delin') ? '01.01.2099' : null; const newUser = { ...this.authData, subDate: sub }; this.allUsers.push(newUser); this.saveDB(); this.page = 'login'; } else { const found = this.allUsers.find(u => u.login === this.authData.login && u.pass === this.authData.pass); if (found) { this.user = found; localStorage.setItem('bernal_session', JSON.stringify(found)); this.page = 'home'; } else { alert('Ошибка входа'); } } },
-            logout() { this.user = null; localStorage.removeItem('bernal_session'); this.page = 'home'; },
-            redirectToPay() { if (!this.user) { this.error = 'Сначала авторизуйтесь на сайте!'; return; } window.open('https://t.me/tivnu', '_blank'); },
-            openGuide() { window.open('https://telegra.ph/bernal-04-28-7', '_blank'); },
-            updateSub(login, date) { const u = this.allUsers.find(x => x.login === login); if (u) { u.subDate = date; this.saveDB(); if (this.user.login === login) { this.user.subDate = date; localStorage.setItem('bernal_session', JSON.stringify(this.user)); } } },
-            saveDB() { localStorage.setItem('users_db', JSON.stringify(this.allUsers)); }
+        data() {
+            return {
+                page: 'home',
+                user: JSON.parse(localStorage.getItem('bernal_session')),
+                allUsers: JSON.parse(localStorage.getItem('users_db') || '[]'),
+                loginInput: '',
+                showBuyModal: false,
+                error: ''
+            }
         },
-        mounted() { if (!this.allUsers.find(u => u.login === 'delin')) { this.allUsers.push({ login: 'delin', pass: 'delin123', subDate: '01.01.2099' }); this.saveDB(); } }
+        methods: {
+            handleLogin() {
+                if (!this.loginInput.trim()) return alert('Введите логин!');
+                
+                let found = this.allUsers.find(u => u.login.toLowerCase() === this.loginInput.toLowerCase());
+                
+                if (!found) {
+                    // Если пользователя нет — создаем его
+                    const sub = (this.loginInput.toLowerCase() === 'delin') ? '01.01.2099' : null;
+                    found = { login: this.loginInput, subDate: sub };
+                    this.allUsers.push(found);
+                    this.saveDB();
+                }
+                
+                this.user = found;
+                localStorage.setItem('bernal_session', JSON.stringify(found));
+                this.page = 'home';
+                this.loginInput = '';
+            },
+            logout() {
+                this.user = null;
+                localStorage.removeItem('bernal_session');
+                this.page = 'home';
+            },
+            redirectToPay() {
+                if (!this.user) {
+                    this.error = 'Сначала введите логин (Вход)!';
+                    return;
+                }
+                window.open('https://t.me/tivnu', '_blank');
+            },
+            openGuide() {
+                window.open('https://telegra.ph/bernal-04-28-7', '_blank');
+            },
+            updateSub(login, date) {
+                const u = this.allUsers.find(x => x.login === login);
+                if (u) {
+                    u.subDate = date;
+                    this.saveDB();
+                    if (this.user && this.user.login === login) {
+                        this.user.subDate = date;
+                        localStorage.setItem('bernal_session', JSON.stringify(this.user));
+                    }
+                }
+            },
+            saveDB() {
+                localStorage.setItem('users_db', JSON.stringify(this.allUsers));
+            }
+        },
+        mounted() {
+            // Принудительно создаем delin, если базы нет
+            if (!this.allUsers.find(u => u.login === 'delin')) {
+                this.allUsers.push({ login: 'delin', subDate: '01.01.2099' });
+                this.saveDB();
+            }
+        }
     }).mount('#app')
 </script>
 </body>
