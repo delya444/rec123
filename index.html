@@ -49,7 +49,7 @@
         .btn-action:hover { transform: translateY(-3px); box-shadow: 0 8px 25px var(--primary-glow); }
 
         .auth-box { background: var(--card); border: 1px solid var(--border); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; }
-        .auth-box input { width: 100%; padding: 14px; margin: 10px 0; background: #15151a; border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; box-sizing: border-box; text-align: center; font-size: 1.1rem; }
+        .auth-box input { width: 100%; padding: 14px; margin: 10px 0; background: #15151a; border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; box-sizing: border-box; text-align: center; font-size: 1rem; }
 
         .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .sub-plan-btn { width: 100%; padding: 16px; background: #15151a; border: 1px solid var(--border); color: white; border-radius: 12px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: var(--fast); }
@@ -79,7 +79,7 @@
                 <i class="fa fa-crown"></i> ADMIN
             </button>
             <button v-if="user" @click="page = 'profile'" class="btn-nav">Кабинет</button>
-            <button v-if="!user" @click="page = 'login'" class="btn-nav">Вход</button>
+            <button v-if="!user" @click="page = 'login'" class="btn-nav">Войти</button>
             <button v-else @click="logout" class="btn-nav" style="border-color: var(--danger);">Выйти</button>
         </div>
     </nav>
@@ -97,7 +97,6 @@
         <section class="container" v-else-if="page === 'catalog'" key="catalog">
             <h2 style="font-size: 2.5rem; margin-bottom: 0;">Доступные решения</h2>
             <div class="catalog-grid">
-                
                 <div class="card">
                     <div>
                         <div style="color: var(--success); font-size: 12px; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px;">• UNDETECTED</div>
@@ -105,7 +104,6 @@
                         <ul style="padding: 0; list-style: none; color: var(--text-dim); font-size: 15px; line-height: 1.8;">
                             <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> External Triggerbot</li>
                             <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Обход записи OBS/Discord</li>
-                            <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Поддержка всех серверов</li>
                         </ul>
                     </div>
                     <button class="btn-action" @click="openModal('gta')">Купить от 230₽</button>
@@ -118,12 +116,10 @@
                         <ul style="padding: 0; list-style: none; color: var(--text-dim); font-size: 15px; line-height: 1.8;">
                             <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Full External ESP</li>
                             <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Recoil Control System</li>
-                            <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Улучшенная оптимизация</li>
                         </ul>
                     </div>
                     <button class="btn-action" @click="openModal('rust')">Купить от 400₽</button>
                 </div>
-
             </div>
         </section>
 
@@ -147,11 +143,9 @@
 
         <section class="container" v-else-if="page === 'admin'" key="admin">
             <div class="card" style="width: 800px;">
-                <h2 style="color: var(--primary)">Панель управления (Admin)</h2>
+                <h2 style="color: var(--primary)">Админ-панель</h2>
                 <table>
-                    <thead>
-                        <tr><th>Логин</th><th>Подписка</th><th>Действия</th></tr>
-                    </thead>
+                    <thead><tr><th>Логин</th><th>Подписка</th><th>Действия</th></tr></thead>
                     <tbody>
                         <tr v-for="u in allUsers" :key="u.login">
                             <td>{{ u.login }}</td>
@@ -166,12 +160,17 @@
             </div>
         </section>
 
-        <section class="container" v-else-if="page === 'login'">
+        <section class="container" v-else-if="page === 'login' || page === 'register'">
             <div class="auth-box">
-                <h2>Вход в систему</h2>
-                <p style="color: var(--text-dim); font-size: 14px; margin-bottom: 20px;">Введите ваш никнейм</p>
-                <input v-model="loginInput" type="text" placeholder="Логин" @keyup.enter="handleLogin">
-                <button class="btn-action" @click="handleLogin">ВОЙТИ</button>
+                <h2>{{ page === 'login' ? 'Авторизация' : 'Регистрация' }}</h2>
+                <input v-model="authData.login" type="text" placeholder="Логин">
+                <input v-model="authData.pass" type="password" placeholder="Пароль">
+                <button class="btn-action" @click="handleAuth">
+                    {{ page === 'login' ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ' }}
+                </button>
+                <p @click="page = (page === 'login' ? 'register' : 'login')" style="cursor:pointer; color: var(--primary); margin-top: 15px; font-size: 13px;">
+                    {{ page === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти' }}
+                </p>
             </div>
         </section>
     </transition>
@@ -179,32 +178,20 @@
     <div class="modal-mask" v-if="showBuyModal" @click.self="showBuyModal = false">
         <div class="auth-box" style="max-width: 450px;">
             <h3 style="margin-bottom: 25px;">{{ selectedGame === 'gta' ? 'Bernal GTA 5 RP' : 'Bernal Rust External' }}</h3>
-            
             <div v-if="selectedGame === 'gta'">
                 <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>230₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>550₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay" style="border-color: gold;"><span>Lifetime</span> <b>3190₽</b></button>
             </div>
-            
             <div v-if="selectedGame === 'rust'">
                 <button class="sub-plan-btn" @click="redirectToPay"><span>1 День</span> <b>400₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>2600₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>8800₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay" style="border-color: gold;"><span>Lifetime</span> <b>45600₽</b></button>
             </div>
-
             <div style="margin: 15px 0; height: 1px; background: var(--border);"></div>
-            
-            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);">
-                <span><i class="fa fa-earth-americas"></i> Другая валюта</span>
-                <i class="fa fa-chevron-right"></i>
-            </button>
-            
-            <button class="sub-plan-btn btn-info" @click="openGuide">
-                <span><i class="fa fa-circle-question"></i> Как происходит покупка?</span>
-                <i class="fa fa-up-right-from-square"></i>
-            </button>
-            
+            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);"><span><i class="fa fa-earth-americas"></i> Другая валюта</span><i class="fa fa-chevron-right"></i></button>
+            <button class="sub-plan-btn btn-info" @click="openGuide"><span><i class="fa fa-circle-question"></i> Как происходит покупка?</span><i class="fa fa-up-right-from-square"></i></button>
             <p v-if="error" style="color: var(--danger); font-size: 13px; margin-top: 15px;">{{ error }}</p>
         </div>
     </div>
@@ -220,47 +207,48 @@
                 page: 'home',
                 user: JSON.parse(localStorage.getItem('bernal_session')),
                 allUsers: JSON.parse(localStorage.getItem('users_db') || '[]'),
-                loginInput: '',
+                authData: { login: '', pass: '' },
                 showBuyModal: false,
                 selectedGame: 'gta',
                 error: ''
             }
         },
         methods: {
-            openModal(game) {
-                this.selectedGame = game;
-                this.showBuyModal = true;
-                this.error = '';
-            },
-            handleLogin() {
-                if (!this.loginInput.trim()) return alert('Введите логин!');
-                let found = this.allUsers.find(u => u.login.toLowerCase() === this.loginInput.toLowerCase());
-                if (!found) {
-                    const sub = (this.loginInput.toLowerCase() === 'delin') ? '01.01.2099' : null;
-                    found = { login: this.loginInput, subDate: sub };
-                    this.allUsers.push(found);
+            handleAuth() {
+                if (!this.authData.login || !this.authData.pass) return alert('Заполните все поля!');
+                
+                if (this.page === 'register') {
+                    if (this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase())) {
+                        return alert('Этот логин уже занят!');
+                    }
+                    const newUser = { 
+                        login: this.authData.login, 
+                        pass: this.authData.pass, 
+                        subDate: (this.authData.login.toLowerCase() === 'delin' ? '01.01.2099' : null) 
+                    };
+                    this.allUsers.push(newUser);
                     this.saveDB();
+                    alert('Регистрация успешна! Теперь войдите.');
+                    this.page = 'login';
+                } else {
+                    const found = this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase() && u.pass === this.authData.pass);
+                    if (found) {
+                        this.user = found;
+                        localStorage.setItem('bernal_session', JSON.stringify(found));
+                        this.page = 'home';
+                    } else {
+                        alert('Неверный логин или пароль!');
+                    }
                 }
-                this.user = found;
-                localStorage.setItem('bernal_session', JSON.stringify(found));
-                this.page = 'home';
-                this.loginInput = '';
+                this.authData.pass = '';
             },
-            logout() {
-                this.user = null;
-                localStorage.removeItem('bernal_session');
-                this.page = 'home';
-            },
+            logout() { this.user = null; localStorage.removeItem('bernal_session'); this.page = 'home'; },
+            openModal(game) { this.selectedGame = game; this.showBuyModal = true; this.error = ''; },
             redirectToPay() {
-                if (!this.user) {
-                    this.error = 'Сначала введите логин (Вход)!';
-                    return;
-                }
+                if (!this.user) { this.error = 'Сначала авторизуйтесь на сайте!'; return; }
                 window.open('https://t.me/tivnu', '_blank');
             },
-            openGuide() {
-                window.open('https://telegra.ph/bernal-04-28-7', '_blank');
-            },
+            openGuide() { window.open('https://telegra.ph/bernal-04-28-7', '_blank'); },
             updateSub(login, date) {
                 const u = this.allUsers.find(x => x.login === login);
                 if (u) {
@@ -272,13 +260,11 @@
                     }
                 }
             },
-            saveDB() {
-                localStorage.setItem('users_db', JSON.stringify(this.allUsers));
-            }
+            saveDB() { localStorage.setItem('users_db', JSON.stringify(this.allUsers)); }
         },
         mounted() {
             if (!this.allUsers.find(u => u.login === 'delin')) {
-                this.allUsers.push({ login: 'delin', subDate: '01.01.2099' });
+                this.allUsers.push({ login: 'delin', pass: 'delin123', subDate: '01.01.2099' });
                 this.saveDB();
             }
         }
