@@ -193,8 +193,8 @@
             </div>
 
             <div style="margin: 15px 0; height: 1px; background: var(--border);"></div>
-            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);"><span>Другая валюта</span><i class="fa fa-chevron-right"></i></button>
-            <button class="sub-plan-btn btn-info" @click="openGuide"><span>Как купить?</span><i class="fa fa-up-right-from-square"></i></button>
+            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);"><span><i class="fa fa-earth-americas"></i> Другая валюта</span><i class="fa fa-chevron-right"></i></button>
+            <button class="sub-plan-btn btn-info" @click="openGuide"><span><i class="fa fa-circle-question"></i> Как происходит покупка?</span><i class="fa fa-up-right-from-square"></i></button>
             <p v-if="error" style="color: var(--danger); font-size: 13px; margin-top: 15px;">{{ error }}</p>
         </div>
     </div>
@@ -220,304 +220,32 @@
             isAdmin() { return this.user && (this.user.login.toLowerCase() === 'delin' || this.user.login.toLowerCase() === 'own'); },
             modalTitle() {
                 const titles = { gta: 'Bernal GTA 5 RP', rust: 'Bernal Rust', skript: 'skript.gg', gta_acc: 'GTA 5 АККАУНТ' };
-                return titles[this.selectedGame];
+                return titles[this.selectedGame] || 'Покупка';
             }
         },
         methods: {
             openModal(game) { this.selectedGame = game; this.showBuyModal = true; this.error = ''; },
             handleAuth() {
-                if (!this.authData.login || !this.authData.pass) return alert('Заполните поля!');
+                if (!this.authData.login || !this.authData.pass) return alert('Заполните все поля!');
                 if (this.page === 'register') {
-                    if (this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase())) return alert('Ник занят!');
+                    if (this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase())) return alert('Никнейм уже занят!');
                     const newUser = { login: this.authData.login, pass: this.authData.pass, subDate: (['delin', 'own'].includes(this.authData.login.toLowerCase()) ? '01.01.2099' : null) };
                     this.allUsers.push(newUser); this.saveDB(); this.page = 'login';
+                    alert('Регистрация успешна!');
                 } else {
                     const found = this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase() && u.pass === this.authData.pass);
                     if (found) { this.user = found; localStorage.setItem('bernal_session', JSON.stringify(found)); this.page = 'home'; }
-                    else alert('Неверно!');
+                    else alert('Неверный логин или пароль!');
                 }
             },
             logout() { this.user = null; localStorage.removeItem('bernal_session'); this.page = 'home'; },
-            redirectToPay() { if (!this.user) { this.error = 'Сначала войдите!'; return; } window.open('https://t.me/tivnu', '_blank'); },
+            redirectToPay() { if (!this.user) { this.error = 'Сначала авторизуйтесь на сайте!'; return; } window.open('https://t.me/tivnu', '_blank'); },
             openGuide() { window.open('https://telegra.ph/bernal-04-28-7', '_blank'); },
             updateSub(login, date) {
                 const u = this.allUsers.find(x => x.login === login);
-                if (u) { u.subDate = date; this.saveDB(); if (this.user.login === login) { this.user.subDate = date; localStorage.setItem('bernal_session', JSON.stringify(this.user)); } }
+                if (u) { u.subDate = date; this.saveDB(); if (this.user && this.user.login === login) { this.user.subDate = date; localStorage.setItem('bernal_session', JSON.stringify(this.user)); } }
             },
             saveDB() { localStorage.setItem('users_db', JSON.stringify(this.allUsers)); }
-        }
-    }).mount('#app')
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bernal — Premium Private Software</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary: #8a2be2;
-            --primary-glow: rgba(138, 43, 226, 0.5);
-            --bg: #050507;
-            --card: #0f0f13;
-            --text: #ffffff;
-            --text-dim: #949499;
-            --border: rgba(138, 43, 226, 0.2);
-            --success: #00ff88;
-            --danger: #ff5252;
-            --fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            --slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .fade-enter-active, .fade-leave-active { transition: opacity var(--slow), transform var(--slow); }
-        .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(15px); }
-
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
-        #particles-js { position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; pointer-events: none; }
-        .bg-gradient-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 10% 10%, rgba(138, 43, 226, 0.08) 0%, transparent 35%), radial-gradient(circle at 90% 90%, rgba(75, 0, 130, 0.08) 0%, transparent 35%); z-index: 2; pointer-events: none; }
-        .site-wrapper { position: relative; z-index: 10; }
-
-        nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 8%; background: rgba(5, 5, 7, 0.7); backdrop-filter: blur(15px); position: fixed; width: 84%; z-index: 1000; border-bottom: 1px solid var(--border); }
-        .logo { font-size: 26px; font-weight: 900; color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); cursor: pointer; letter-spacing: 1px;}
-
-        .nav-btns { display: flex; gap: 10px; align-items: center; }
-        .btn-nav { background: rgba(138, 43, 226, 0.1); border: 1px solid var(--primary); color: white; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all var(--fast); }
-        .btn-nav:hover { background: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 20px var(--primary-glow); }
-
-        .container { padding: 140px 8% 80px; display: flex; flex-direction: column; align-items: center; min-height: 70vh; }
-        .hero h1 { font-size: 5.5rem; margin: 0; letter-spacing: -3px; font-weight: 900; background: linear-gradient(180deg, #fff 30%, #8a2be2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(138, 43, 226, 0.3)); }
-
-        .catalog-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; width: 100%; max-width: 1000px; margin-top: 40px; }
-        .card { background: linear-gradient(165deg, #121217 0%, #08080a 100%); border: 1px solid var(--border); border-radius: 24px; padding: 40px; transition: all var(--slow); position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; }
-        .card:hover { transform: translateY(-12px); border-color: var(--primary); }
-
-        .btn-action { width: 100%; padding: 16px; background: var(--primary); border: none; color: white; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all var(--fast); margin-top: 25px; }
-        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 8px 25px var(--primary-glow); }
-
-        .auth-box { background: var(--card); border: 1px solid var(--border); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; }
-        .auth-box input { width: 100%; padding: 14px; margin: 10px 0; background: #15151a; border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; box-sizing: border-box; text-align: center; font-size: 1rem; }
-
-        .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .sub-plan-btn { width: 100%; padding: 16px; background: #15151a; border: 1px solid var(--border); color: white; border-radius: 12px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: var(--fast); }
-        .sub-plan-btn:hover { border-color: var(--primary); background: rgba(138, 43, 226, 0.1); }
-        
-        .btn-info { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); color: var(--text-dim); font-size: 14px; }
-        .btn-info:hover { border-color: var(--text-dim); color: white; background: rgba(255, 255, 255, 0.1); }
-
-        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; }
-        .active { background: rgba(0, 255, 136, 0.1); color: var(--success); border: 1px solid var(--success); }
-        .expired { background: rgba(255, 82, 82, 0.1); color: var(--danger); border: 1px solid var(--danger); }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        td, th { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    </style>
-</head>
-<body>
-
-<div id="particles-js"></div>
-<div class="bg-gradient-overlay"></div>
-
-<div id="app" class="site-wrapper">
-    <nav>
-        <div class="logo" @click="page = 'home'">BERNAL</div>
-        <div class="nav-btns">
-            <button v-if="user && user.login === 'delin'" @click="page = 'admin'" class="btn-nav" style="border-color: gold; color: gold;">
-                <i class="fa fa-crown"></i> ADMIN
-            </button>
-            <button v-if="user" @click="page = 'profile'" class="btn-nav">Кабинет</button>
-            <button v-if="!user" @click="page = 'login'" class="btn-nav">Войти</button>
-            <button v-else @click="logout" class="btn-nav" style="border-color: var(--danger);">Выйти</button>
-        </div>
-    </nav>
-
-    <transition name="fade" mode="out-in">
-        <section class="container" v-if="page === 'home'" key="home">
-            <div style="text-align: center;">
-                <div style="color: var(--primary); font-weight: 800; letter-spacing: 4px; margin-bottom: 10px;">PREMIUM SOFTWARE</div>
-                <h1 class="hero">BERNAL</h1>
-                <p style="color: var(--text-dim); font-size: 1.2rem; margin-top: 20px;">Undetected External Solutions for PC Games</p>
-                <button class="btn-action" style="width: auto; padding: 18px 60px;" @click="page = 'catalog'">ОТКРЫТЬ КАТАЛОГ</button>
-            </div>
-        </section>
-
-        <section class="container" v-else-if="page === 'catalog'" key="catalog">
-            <h2 style="font-size: 2.5rem; margin-bottom: 0;">Доступные решения</h2>
-            <div class="catalog-grid">
-                <div class="card">
-                    <div>
-                        <div style="color: var(--success); font-size: 12px; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px;">• UNDETECTED</div>
-                        <h3 style="font-size: 2rem; margin: 0 0 15px;">Bernal GTA 5 RP</h3>
-                        <ul style="padding: 0; list-style: none; color: var(--text-dim); font-size: 15px; line-height: 1.8;">
-                            <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> External Triggerbot</li>
-                            <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Обход записи OBS/Discord</li>
-                        </ul>
-                    </div>
-                    <button class="btn-action" @click="openModal('gta')">Купить от 230₽</button>
-                </div>
-
-                <div class="card">
-                    <div>
-                        <div style="color: #ffaa00; font-size: 12px; font-weight: 800; letter-spacing: 2px; margin-bottom: 15px;">• PREMIUM</div>
-                        <h3 style="font-size: 2rem; margin: 0 0 15px;">Bernal Rust</h3>
-                        <ul style="padding: 0; list-style: none; color: var(--text-dim); font-size: 15px; line-height: 1.8;">
-                            <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Full External ESP</li>
-                            <li><i class="fa fa-check" style="color: var(--primary); margin-right: 10px;"></i> Recoil Control System</li>
-                        </ul>
-                    </div>
-                    <button class="btn-action" @click="openModal('rust')">Купить от 400₽</button>
-                </div>
-            </div>
-        </section>
-
-        <section class="container" v-else-if="page === 'profile'" key="profile">
-            <div class="card" style="width: 500px;">
-                <h2>Личный кабинет</h2>
-                <p style="color: var(--text-dim)">Логин: <span style="color: white; font-weight: bold;">{{ user.login }}</span></p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px;">
-                    <div style="background: #15151a; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-                        <span style="font-size: 12px; color: var(--text-dim)">Статус</span><br>
-                        <span v-if="user.subDate" class="status-badge active" style="margin-top:5px; display:inline-block;">АКТИВНА</span>
-                        <span v-else class="status-badge expired" style="margin-top:5px; display:inline-block;">НЕТ</span>
-                    </div>
-                    <div style="background: #15151a; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
-                        <span style="font-size: 12px; color: var(--text-dim)">Истекает</span><br>
-                        <span style="font-weight: bold; font-size: 14px;">{{ user.subDate || '—' }}</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="container" v-else-if="page === 'admin'" key="admin">
-            <div class="card" style="width: 800px;">
-                <h2 style="color: var(--primary)">Админ-панель</h2>
-                <table>
-                    <thead><tr><th>Логин</th><th>Подписка</th><th>Действия</th></tr></thead>
-                    <tbody>
-                        <tr v-for="u in allUsers" :key="u.login">
-                            <td>{{ u.login }}</td>
-                            <td>{{ u.subDate || 'Нет' }}</td>
-                            <td>
-                                <button @click="updateSub(u.login, '01.01.2099')" style="background: var(--success); border:none; padding: 5px 10px; border-radius:4px; cursor:pointer;">Дать LT</button>
-                                <button @click="updateSub(u.login, null)" style="background: var(--danger); border:none; padding: 5px 10px; border-radius:4px; cursor:pointer; color:white; margin-left:5px;">Сброс</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="container" v-else-if="page === 'login' || page === 'register'">
-            <div class="auth-box">
-                <h2>{{ page === 'login' ? 'Авторизация' : 'Регистрация' }}</h2>
-                <input v-model="authData.login" type="text" placeholder="Логин">
-                <input v-model="authData.pass" type="password" placeholder="Пароль">
-                <button class="btn-action" @click="handleAuth">
-                    {{ page === 'login' ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ' }}
-                </button>
-                <p @click="page = (page === 'login' ? 'register' : 'login')" style="cursor:pointer; color: var(--primary); margin-top: 15px; font-size: 13px;">
-                    {{ page === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти' }}
-                </p>
-            </div>
-        </section>
-    </transition>
-
-    <div class="modal-mask" v-if="showBuyModal" @click.self="showBuyModal = false">
-        <div class="auth-box" style="max-width: 450px;">
-            <h3 style="margin-bottom: 25px;">{{ selectedGame === 'gta' ? 'Bernal GTA 5 RP' : 'Bernal Rust External' }}</h3>
-            <div v-if="selectedGame === 'gta'">
-                <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>230₽</b></button>
-                <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>550₽</b></button>
-                <button class="sub-plan-btn" @click="redirectToPay" style="border-color: gold;"><span>Lifetime</span> <b>3190₽</b></button>
-            </div>
-            <div v-if="selectedGame === 'rust'">
-                <button class="sub-plan-btn" @click="redirectToPay"><span>1 День</span> <b>400₽</b></button>
-                <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>2600₽</b></button>
-                <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>8800₽</b></button>
-                <button class="sub-plan-btn" @click="redirectToPay" style="border-color: gold;"><span>Lifetime</span> <b>45600₽</b></button>
-            </div>
-            <div style="margin: 15px 0; height: 1px; background: var(--border);"></div>
-            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);"><span><i class="fa fa-earth-americas"></i> Другая валюта</span><i class="fa fa-chevron-right"></i></button>
-            <button class="sub-plan-btn btn-info" @click="openGuide"><span><i class="fa fa-circle-question"></i> Как происходит покупка?</span><i class="fa fa-up-right-from-square"></i></button>
-            <p v-if="error" style="color: var(--danger); font-size: 13px; margin-top: 15px;">{{ error }}</p>
-        </div>
-    </div>
-</div>
-
-<script>
-    particlesJS("particles-js", { "particles": { "number": { "value": 80 }, "color": { "value": "#8a2be2" }, "shape": { "type": "circle" }, "opacity": { "value": 0.8 }, "size": { "value": 3, "random": true }, "line_linked": { "enable": true, "distance": 150, "color": "#8a2be2", "opacity": 0.4, "width": 1 }, "move": { "enable": true, "speed": 1.5 } }, "interactivity": { "events": { "onhover": { "enable": true, "mode": "grab" } } } });
-    
-    const { createApp } = Vue
-    createApp({
-        data() {
-            return {
-                page: 'home',
-                user: JSON.parse(localStorage.getItem('bernal_session')),
-                allUsers: JSON.parse(localStorage.getItem('users_db') || '[]'),
-                authData: { login: '', pass: '' },
-                showBuyModal: false,
-                selectedGame: 'gta',
-                error: ''
-            }
-        },
-        methods: {
-            handleAuth() {
-                if (!this.authData.login || !this.authData.pass) return alert('Заполните все поля!');
-                
-                if (this.page === 'register') {
-                    if (this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase())) {
-                        return alert('Этот логин уже занят!');
-                    }
-                    const newUser = { 
-                        login: this.authData.login, 
-                        pass: this.authData.pass, 
-                        subDate: (this.authData.login.toLowerCase() === 'delin' ? '01.01.2099' : null) 
-                    };
-                    this.allUsers.push(newUser);
-                    this.saveDB();
-                    alert('Регистрация успешна! Теперь войдите.');
-                    this.page = 'login';
-                } else {
-                    const found = this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase() && u.pass === this.authData.pass);
-                    if (found) {
-                        this.user = found;
-                        localStorage.setItem('bernal_session', JSON.stringify(found));
-                        this.page = 'home';
-                    } else {
-                        alert('Неверный логин или пароль!');
-                    }
-                }
-                this.authData.pass = '';
-            },
-            logout() { this.user = null; localStorage.removeItem('bernal_session'); this.page = 'home'; },
-            openModal(game) { this.selectedGame = game; this.showBuyModal = true; this.error = ''; },
-            redirectToPay() {
-                if (!this.user) { this.error = 'Сначала авторизуйтесь на сайте!'; return; }
-                window.open('https://t.me/tivnu', '_blank');
-            },
-            openGuide() { window.open('https://telegra.ph/bernal-04-28-7', '_blank'); },
-            updateSub(login, date) {
-                const u = this.allUsers.find(x => x.login === login);
-                if (u) {
-                    u.subDate = date;
-                    this.saveDB();
-                    if (this.user && this.user.login === login) {
-                        this.user.subDate = date;
-                        localStorage.setItem('bernal_session', JSON.stringify(this.user));
-                    }
-                }
-            },
-            saveDB() { localStorage.setItem('users_db', JSON.stringify(this.allUsers)); }
-        },
-        mounted() {
-            if (!this.allUsers.find(u => u.login === 'delin')) {
-                this.allUsers.push({ login: 'delin', pass: 'delin123', subDate: '01.01.2099' });
-                this.saveDB();
-            }
         }
     }).mount('#app')
 </script>
