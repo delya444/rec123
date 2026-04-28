@@ -51,15 +51,19 @@
         .auth-box { background: var(--card); border: 1px solid var(--border); padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; text-align: center; }
         .auth-box input { width: 100%; padding: 14px; margin: 10px 0; background: #15151a; border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; box-sizing: border-box; text-align: center; }
 
+        .sub-item { background: rgba(138, 43, 226, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-top: 10px; display: flex; align-items: center; gap: 15px; }
+        .sub-item i { color: var(--primary); font-size: 1.2rem; }
+
+        .admin-table-wrapper { width: 100%; max-width: 1100px; background: var(--card); border-radius: 24px; border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(138, 43, 226, 0.1); padding: 15px; text-align: left; color: var(--primary); font-size: 14px; }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .btn-small { padding: 5px 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 11px; font-weight: 700; transition: 0.2s; color: white; }
+        
         .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .sub-plan-btn { width: 100%; padding: 16px; background: #15151a; border: 1px solid var(--border); color: white; border-radius: 12px; cursor: pointer; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: var(--fast); }
         .sub-plan-btn:hover { border-color: var(--primary); background: rgba(138, 43, 226, 0.1); }
-        
-        .badge-green { background: rgba(0, 255, 136, 0.1); color: var(--success); border: 1px solid var(--success); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; display: inline-block; margin-bottom: 15px; }
-        .btn-info { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); color: var(--text-dim); font-size: 14px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        td, th { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .badge-green { background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid #00ff88; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; display: inline-block; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -91,54 +95,62 @@
 
         <section class="container" v-else-if="page === 'catalog'" key="catalog">
             <div class="catalog-grid">
-                <div class="card">
+                <div class="card" v-for="item in products" :key="item.id">
                     <div>
-                        <h3 style="font-size: 1.8rem; margin: 0 0 10px;">Bernal GTA 5 RP</h3>
-                        <p style="color: var(--text-dim); font-size: 14px;">External Triggerbot & OBS Bypass</p>
+                        <div v-if="item.badge" class="badge-green">{{ item.badge }}</div>
+                        <h3 style="font-size: 1.8rem; margin: 0 0 10px;">{{ item.name }}</h3>
+                        <p style="color: var(--text-dim); font-size: 14px;">{{ item.desc }}</p>
                     </div>
-                    <button class="btn-action" @click="openModal('gta')">От 230₽</button>
+                    <button class="btn-action" @click="openModal(item.id)">{{ item.priceLabel }}</button>
                 </div>
+            </div>
+        </section>
 
-                <div class="card">
-                    <div>
-                        <h3 style="font-size: 1.8rem; margin: 0 0 10px;">Bernal Rust</h3>
-                        <p style="color: var(--text-dim); font-size: 14px;">External ESP & Recoil Control</p>
-                    </div>
-                    <button class="btn-action" @click="openModal('rust')">От 400₽</button>
+        <section class="container" v-else-if="page === 'profile'" key="profile">
+            <div class="card" style="width: 450px;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Личный кабинет</h2>
+                    <p style="color: var(--primary); font-weight: 800; font-size: 14px; margin-top: 5px;">UID: {{ user.uid }}</p>
                 </div>
-
-                <div class="card">
-                    <div>
-                        <h3 style="font-size: 1.8rem; margin: 0 0 10px;">skript.gg</h3>
-                        <p style="color: var(--text-dim); font-size: 14px;">Powerful Multi-Game Script Engine</p>
+                <div style="border-top: 1px solid var(--border); padding-top: 20px;">
+                    <p style="color: var(--text-dim); margin-bottom: 15px;">Логин: <b style="color: white;">{{ user.login }}</b></p>
+                    <h4 style="margin: 20px 0 10px;">Ваши подписки:</h4>
+                    <div v-if="hasAnySub">
+                        <div v-for="(date, game) in user.subs" :key="game" v-show="date" class="sub-item">
+                            <i class="fa fa-shield-halved"></i>
+                            <div style="flex-grow: 1;">
+                                <div style="font-weight: 700; text-transform: uppercase; font-size: 13px;">{{ getGameName(game) }}</div>
+                                <div style="color: var(--text-dim); font-size: 12px;">Активна до: {{ date }}</div>
+                            </div>
+                            <div style="color: var(--success); font-size: 10px; font-weight: 900;">ACTIVE</div>
+                        </div>
                     </div>
-                    <button class="btn-action" @click="openModal('skript')">От 1050₽</button>
-                </div>
-
-                <div class="card">
-                    <div>
-                        <div class="badge-green">Social Club не привязан</div>
-                        <h3 style="font-size: 1.8rem; margin: 0 0 10px;">GTA 5 АККАУНТ</h3>
-                        <p style="color: var(--text-dim); font-size: 14px;">Чистый аккаунт для ваших нужд</p>
-                    </div>
-                    <button class="btn-action" @click="openModal('gta_acc')">Купить за 249₽</button>
+                    <p v-else style="color: var(--danger); font-size: 13px; text-align: center; padding: 20px;">У вас пока нет активных подписок</p>
                 </div>
             </div>
         </section>
 
         <section class="container" v-else-if="page === 'admin'" key="admin">
-            <div class="card" style="width: 800px;">
-                <h2 style="color: var(--primary)">Админ-панель ({{ user.login }})</h2>
+            <div class="admin-table-wrapper">
+                <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0; color: var(--primary);">Управление ({{ allUsers.length }})</h2>
+                    <button @click="page = 'home'" class="btn-small" style="background: #222;">Назад</button>
+                </div>
                 <table>
-                    <thead><tr><th>Логин</th><th>Подписка</th><th>Действия</th></tr></thead>
+                    <thead><tr><th>UID</th><th>Логин</th><th>Выдать</th><th>Действия</th></tr></thead>
                     <tbody>
                         <tr v-for="u in allUsers" :key="u.login">
+                            <td>#{{ u.uid }}</td>
                             <td>{{ u.login }}</td>
-                            <td>{{ u.subDate || 'Нет' }}</td>
                             <td>
-                                <button @click="updateSub(u.login, '01.01.2099')" style="background: var(--success); border:none; padding: 5px 10px; border-radius:4px; cursor:pointer;">Дать LT</button>
-                                <button @click="updateSub(u.login, null)" style="background: var(--danger); border:none; padding: 5px 10px; border-radius:4px; cursor:pointer; color:white; margin-left:5px;">Сброс</button>
+                                <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                    <button @click="giveSub(u.login, 'gta')" class="btn-small" style="background: #333;">GTA</button>
+                                    <button @click="giveSub(u.login, 'rust')" class="btn-small" style="background: #333;">RUST</button>
+                                    <button @click="giveSub(u.login, 'skript')" class="btn-small" style="background: #333;">SKRIPT</button>
+                                    <button @click="giveSub(u.login, 'gta_acc')" class="btn-small" style="background: #333;">ACC</button>
+                                </div>
                             </td>
+                            <td><button @click="resetSubs(u.login)" class="btn-small" style="background: var(--danger);">Сброс</button></td>
                         </tr>
                     </tbody>
                 </table>
@@ -156,45 +168,32 @@
                 </p>
             </div>
         </section>
-
-        <section class="container" v-else-if="page === 'profile'">
-            <div class="card" style="width: 400px; text-align: center;">
-                <h2>Личный кабинет</h2>
-                <p>Логин: <b>{{ user.login }}</b></p>
-                <p>Подписка: <span :style="{color: user.subDate ? '#00ff88' : '#ff5252'}">{{ user.subDate || 'Отсутствует' }}</span></p>
-            </div>
-        </section>
     </transition>
 
     <div class="modal-mask" v-if="showBuyModal" @click.self="showBuyModal = false">
         <div class="auth-box" style="max-width: 450px;">
             <h3 style="margin-bottom: 25px;">{{ modalTitle }}</h3>
-            
             <div v-if="selectedGame === 'gta'">
                 <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>230₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>550₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay" style="border-color: gold;"><span>Lifetime</span> <b>3190₽</b></button>
             </div>
-            
             <div v-else-if="selectedGame === 'rust'">
                 <button class="sub-plan-btn" @click="redirectToPay"><span>1 День</span> <b>400₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>2600₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>8800₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay" style="border-color: gold;"><span>Lifetime</span> <b>45600₽</b></button>
             </div>
-
             <div v-else-if="selectedGame === 'skript'">
                 <button class="sub-plan-btn" @click="redirectToPay"><span>7 Дней</span> <b>1050₽</b></button>
                 <button class="sub-plan-btn" @click="redirectToPay"><span>30 Дней</span> <b>2400₽</b></button>
             </div>
-
             <div v-else-if="selectedGame === 'gta_acc'">
                 <button class="sub-plan-btn" @click="redirectToPay"><span>1 Аккаунт</span> <b>249₽</b></button>
             </div>
-
             <div style="margin: 15px 0; height: 1px; background: var(--border);"></div>
-            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);"><span><i class="fa fa-earth-americas"></i> Другая валюта</span><i class="fa fa-chevron-right"></i></button>
-            <button class="sub-plan-btn btn-info" @click="openGuide"><span><i class="fa fa-circle-question"></i> Как происходит покупка?</span><i class="fa fa-up-right-from-square"></i></button>
+            <button class="sub-plan-btn" @click="redirectToPay" style="background: rgba(138, 43, 226, 0.15);"><span>Другая валюта</span><i class="fa fa-chevron-right"></i></button>
+            <button class="sub-plan-btn btn-info" @click="openGuide" style="background:rgba(255,255,255,0.05); color:var(--text-dim); font-size:14px; border-color:rgba(255,255,255,0.1);"><span>Как купить?</span><i class="fa fa-up-right-from-square"></i></button>
             <p v-if="error" style="color: var(--danger); font-size: 13px; margin-top: 15px;">{{ error }}</p>
         </div>
     </div>
@@ -213,37 +212,72 @@
                 authData: { login: '', pass: '' },
                 showBuyModal: false,
                 selectedGame: '',
-                error: ''
+                error: '',
+                products: [
+                    { id: 'gta', name: 'Bernal GTA 5 RP', desc: 'External Triggerbot & OBS Bypass', priceLabel: 'От 230₽' },
+                    { id: 'rust', name: 'Bernal Rust', desc: 'External ESP & Recoil Control', priceLabel: 'От 400₽' },
+                    { id: 'skript', name: 'skript.gg', desc: 'Powerful Multi-Game Script Engine', priceLabel: 'От 1050₽' },
+                    { id: 'gta_acc', name: 'GTA 5 АККАУНТ', desc: 'Чистый аккаунт для ваших нужд', priceLabel: 'Купить за 249₽', badge: 'Social Club не привязан' }
+                ]
             }
         },
         computed: {
-            isAdmin() { return this.user && (this.user.login.toLowerCase() === 'delin' || this.user.login.toLowerCase() === 'own'); },
-            modalTitle() {
-                const titles = { gta: 'Bernal GTA 5 RP', rust: 'Bernal Rust', skript: 'skript.gg', gta_acc: 'GTA 5 АККАУНТ' };
-                return titles[this.selectedGame] || 'Покупка';
-            }
+            isAdmin() { return this.user && ['delin', 'own', '666'].includes(this.user.login.toLowerCase()); },
+            hasAnySub() { return this.user && Object.values(this.user.subs || {}).some(d => d !== null); },
+            modalTitle() { return this.products.find(x => x.id === this.selectedGame)?.name || 'Покупка'; }
         },
         methods: {
             openModal(game) { this.selectedGame = game; this.showBuyModal = true; this.error = ''; },
+            getGameName(id) { return this.products.find(p => p.id === id)?.name || id; },
             handleAuth() {
-                if (!this.authData.login || !this.authData.pass) return alert('Заполните все поля!');
+                if (!this.authData.login || !this.authData.pass) return alert('Заполните поля!');
+                const loginLow = this.authData.login.toLowerCase();
+                
                 if (this.page === 'register') {
-                    if (this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase())) return alert('Никнейм уже занят!');
-                    const newUser = { login: this.authData.login, pass: this.authData.pass, subDate: (['delin', 'own'].includes(this.authData.login.toLowerCase()) ? '01.01.2099' : null) };
+                    if (this.allUsers.find(u => u.login.toLowerCase() === loginLow)) return alert('Логин занят!');
+                    const newUser = { 
+                        uid: this.allUsers.length + 101, // UID начинается со 101
+                        login: this.authData.login, 
+                        pass: this.authData.pass, 
+                        subs: { gta: null, rust: null, skript: null, gta_acc: null }
+                    };
+                    if (['delin', 'own', '666'].includes(loginLow)) newUser.subs.gta = '01.01.2099';
                     this.allUsers.push(newUser); this.saveDB(); this.page = 'login';
-                    alert('Регистрация успешна!');
+                    alert('Регистрация завершена!');
                 } else {
-                    const found = this.allUsers.find(u => u.login.toLowerCase() === this.authData.login.toLowerCase() && u.pass === this.authData.pass);
-                    if (found) { this.user = found; localStorage.setItem('bernal_session', JSON.stringify(found)); this.page = 'home'; }
-                    else alert('Неверный логин или пароль!');
+                    const found = this.allUsers.find(u => u.login.toLowerCase() === loginLow && u.pass === this.authData.pass);
+                    if (found) { 
+                        this.user = found; 
+                        localStorage.setItem('bernal_session', JSON.stringify(found)); 
+                        this.page = 'home'; 
+                    } else { alert('Неверные данные!'); }
                 }
             },
             logout() { this.user = null; localStorage.removeItem('bernal_session'); this.page = 'home'; },
-            redirectToPay() { if (!this.user) { this.error = 'Сначала авторизуйтесь на сайте!'; return; } window.open('https://t.me/tivnu', '_blank'); },
+            redirectToPay() { if (!this.user) { this.error = 'Сначала войдите!'; return; } window.open('https://t.me/tivnu', '_blank'); },
             openGuide() { window.open('https://telegra.ph/bernal-04-28-7', '_blank'); },
-            updateSub(login, date) {
+            giveSub(login, game) {
                 const u = this.allUsers.find(x => x.login === login);
-                if (u) { u.subDate = date; this.saveDB(); if (this.user && this.user.login === login) { this.user.subDate = date; localStorage.setItem('bernal_session', JSON.stringify(this.user)); } }
+                if (u) {
+                    if (!u.subs) u.subs = {};
+                    u.subs[game] = '01.01.2099';
+                    this.saveDB();
+                    if (this.user && this.user.login === login) {
+                        this.user = JSON.parse(JSON.stringify(u));
+                        localStorage.setItem('bernal_session', JSON.stringify(this.user));
+                    }
+                }
+            },
+            resetSubs(login) {
+                const u = this.allUsers.find(x => x.login === login);
+                if (u) {
+                    u.subs = { gta: null, rust: null, skript: null, gta_acc: null };
+                    this.saveDB();
+                    if (this.user && this.user.login === login) {
+                        this.user = JSON.parse(JSON.stringify(u));
+                        localStorage.setItem('bernal_session', JSON.stringify(this.user));
+                    }
+                }
             },
             saveDB() { localStorage.setItem('users_db', JSON.stringify(this.allUsers)); }
         }
